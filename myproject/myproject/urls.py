@@ -20,5 +20,5 @@ from myapp import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('employees/', views.helloWorld.as_view()),
+    path('prediction/', views.makePrediction.as_view()),
 ]

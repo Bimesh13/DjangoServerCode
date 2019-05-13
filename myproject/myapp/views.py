@@ -4,41 +4,39 @@ from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response 
 from rest_framework import status
-from .models import employees
-from . serializers import employeesSerializer
 import json
 
 def doPrediction(Hometeam,Awayteam):
 	a = loadFile(Hometeam,Awayteam)
-	print("-------",a)
 	result = loadModel(a)
 	return result
 
 def loadFile(Hometeam,Awayteam):
 	import pandas as pd
-	data= pd.read_csv('C:/Users/Bimesh/restFramework/myproject/final_dataset1.csv')
+	df2= pd.read_csv('C:/Users/Bimesh/restFramework/myproject/FootballDataset.csv')
 	ht= Hometeam
 	at= Awayteam
-	hm= data["HomeTeam"]
-	hp= 0
-	for i in hm:
+	homeData = df2["HomeTeam"]
+	homePlayed = 0
+	for i in homeData:
 		if i == ht:
-			hp = hp + 1
-	am= data["AwayTeam"]
-	ap= 0
-	for i in am:
+			homePlayed= homePlayed + 1
+
+	awayData = df2["AwayTeam"]
+	awayPlayed = 0
+	for i in awayData:
 		if i == at:
-			ap = ap + 1
+			awayPlayed= awayPlayed + 1
 	
-	a= (data[data["HomeTeam"] == ht].sum().HTP)/hp
-	b= (data[data["AwayTeam"] == at].sum().ATP)/ap
-	c= (data[data["HomeTeam"] == ht].sum().HomeTeamLP)/hp
-	d= (data[data["AwayTeam"] == at].sum().AwayTeamLP)/ap
-	e= (data[data["HomeTeam"] == ht].sum().HTFormPts)/hp
-	f= (data[data["AwayTeam"] == at].sum().ATFormPts)/ap
-	g= (data[data["HomeTeam"] == ht].sum().HTGD)/hp
-	h= (data[data["AwayTeam"] == at].sum().ATGD)/ap
-	feature =[a],[b],[c],[d],[e],[f],[g],[h]	
+	HS= (df2[df2["HomeTeam"] == ht].sum().HS)/homePlayed
+	AS= (df2[df2["AwayTeam"] == at].sum().AS)/awayPlayed
+	HST= (df2[df2["HomeTeam"] == ht].sum().HST)/homePlayed
+	AST= (df2[df2["AwayTeam"] == at].sum().AST)/awayPlayed
+	HC= (df2[df2["HomeTeam"] == ht].sum().HC)/homePlayed
+	AC= (df2[df2["AwayTeam"] == at].sum().AC)/awayPlayed
+	HF= (df2[df2["HomeTeam"] == ht].sum().HF)/homePlayed
+	AF= (df2[df2["AwayTeam"] == at].sum().AF)/awayPlayed
+	feature =[HS],[AS],[HST],[AST],[HC],[AC],[HF],[AF]	
 	return feature
 
 
@@ -46,40 +44,26 @@ def loadModel(p):
 	import pandas as pd
 	import pickle
 	try:
-		predictor = pickle.load(open('C:/Users/Bimesh/restFramework/myproject/xgbPredictionModel.sav','rb'))
+		predictor = pickle.load(open('C:/Users/Bimesh/restFramework/myproject/decisionTreeModel.sav','rb'))
 	except:
 		print("File is not loaded")
-	print(p[0])
-	d = {'HTP': p[0],'ATP': p[1],'HomeTeamLP': p[2],'AwayTeamLP': p[3],'HTFormPts': p[4],'ATFormPts': p[5], 'HTGD': p[6],'ATGD': p[7]}
+	d = {'HS': p[0],'AS': p[1],'HST': p[2],'AST': p[3],'HC': p[4],'AC': p[5], 'HF': p[6],'AF': p[7]}
 	df = pd.DataFrame(data=d)
 	print(df)
 	result= predictor.predict(df)
 	print(result)
 	return result
 
-class employeeList(APIView):
 
-	def get(self,request):
-		employees1= employees.objects.all()
-		serializer= employeesSerializer(employees1, many=True)
-		return Response(serializer.data)
-
-	
-	def post(self):
-		pass
-
-class helloWorld(APIView):
+class makePrediction(APIView):
 		
 	def get(self,request):
-		message= {'data': 'Hello World'} 
+		message= {'You can make prediction by posting two team values.'} 
 		return Response(message)
 
 	
 	def post(self, request):
 		message= request.data
-		yolo = json.dumps(message, indent=4)
-		print(yolo)
-		yolo = json.loads(yolo)
 		ht= message.get('team1')
 		at= message.get('team2')
 		print(ht,at)
